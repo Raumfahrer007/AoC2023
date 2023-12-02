@@ -1,7 +1,6 @@
 def part_one(input):
     sum = 0
 
-
     for line in input:
         number = ""
         for char in line:
@@ -110,9 +109,9 @@ test_2 = [
     "7pqrstsixteen"
 ]
 
-data = open("day01Input.txt", "r")
+data = open("test.txt", "r")
 input = data.readlines()
 data.close()
 
-#partOne(input)
-part_two(input)
+part_one(input)
+#part_two(input)
