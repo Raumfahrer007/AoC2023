@@ -1,4 +1,5 @@
 import threading
+import multiprocessing
 
 def part_one(input):
     str_seeds = input[0].replace("seeds: ", "").split(" ")
@@ -30,26 +31,27 @@ def part_two(input):
 
     maps = get_maps(input)
 
-    lowest_locations = []
-    step = -10
+    manager = multiprocessing.Manager()
+    lowest_locations = manager.list()
+    step = -20
     while not lowest_locations:
-        step += 10
-        threads = []
-        for i in range(10):
-            location_range = [(step+i) * 1000000, ((step+i+1) * 1000000) - 1]
-            thread = threading.Thread(target=find_lowest_possible_location, args=(location_range, maps, seeds_ranges, lowest_locations, i))
-            threads.append(thread)
-            thread.start()
+        step += 20
+        jobs = []
+        for i in range(20):
+            location_range = [(step+i) * 500000, ((step+i+1) * 500000) - 1]
+            process = multiprocessing.Process(target=find_lowest_possible_location, args=(location_range, maps, seeds_ranges, lowest_locations, i))
+            jobs.append(process)
+            process.start()
 
-        for thread in threads:
-            thread.join()
+        for process in jobs:
+            process.join()
 
     lowest_locations.sort()
     print(f"Lowest LocationNumber: {lowest_locations[0]}")
 
 
 def find_lowest_possible_location(location_range, maps, seeds_ranges, lowest_locations, i):
-    print(f"Start Thread {i}")
+    print(f"Start Thread {i} - {location_range}")
     location = location_range[0]
     while location <= location_range[1]:
         destination_value = location
@@ -139,9 +141,10 @@ test_1 = [
     "56 93 4"
 ]
 
-data = open("day05Input.txt", "r")
-input = data.readlines()
-data.close()
+if __name__ == "__main__":
+    data = open("day05Input.txt", "r")
+    input = data.readlines()
+    data.close()
 
-part_one(input)
-part_two(input)
+    part_one(input)
+    part_two(input)
