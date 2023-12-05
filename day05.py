@@ -1,7 +1,25 @@
+import threading
+
 def part_one(input):
     str_seeds = input[0].replace("seeds: ", "").split(" ")
     seeds = [int(str_seed) for str_seed in str_seeds]
-    find_lowest_location_number(seeds, input)
+    maps = get_maps(input)
+
+    location_numbers = []
+    for seed in seeds:
+        source_value = seed
+        for map in maps:
+            for entry in map:
+                if source_value >= entry[1][0] and source_value <= entry[1][1]:
+                    difference = source_value - entry[1][0]
+                    source_value = entry[0][0] + difference
+                    break
+
+        location_numbers.append(source_value)
+        seed += 1
+
+    location_numbers.sort()
+    print(f"Lowest LocationNumber: {location_numbers[0]}")
 
 
 def part_two(input):
@@ -10,10 +28,55 @@ def part_two(input):
     for i in range(0, len(str_seeds) - 1, 2):
         seeds_ranges.append([int(str_seeds[i]), int(str_seeds[i]) + int(str_seeds[i+1]) - 1])
 
-    find_lowest_location_number(seeds_ranges, input)
+    maps = get_maps(input)
+
+    lowest_locations = []
+    step = -10
+    while not lowest_locations:
+        step += 10
+        threads = []
+        for i in range(10):
+            location_range = [(step+i) * 1000000, ((step+i+1) * 1000000) - 1]
+            thread = threading.Thread(target=find_lowest_possible_location, args=(location_range, maps, seeds_ranges, lowest_locations, i))
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+    lowest_locations.sort()
+    print(f"Lowest LocationNumber: {lowest_locations[0]}")
 
 
-def find_lowest_location_number(seeds, input):
+def find_lowest_possible_location(location_range, maps, seeds_ranges, lowest_locations, i):
+    print(f"Start Thread {i}")
+    location = location_range[0]
+    while location <= location_range[1]:
+        destination_value = location
+        possible = False
+
+        for map in reversed(maps):
+            for entry in map:
+                if destination_value >= entry[0][0] and destination_value <= entry[0][1]:
+                    difference = destination_value - entry[0][0]
+                    destination_value = entry[1][0] + difference
+                    break
+        
+        for seed_range in seeds_ranges:
+            if destination_value >= seed_range[0] and destination_value <= seed_range[1]:
+                possible = True
+                break
+
+        if possible:
+            lowest_locations.append(location)
+            break
+        else:
+            location += 1
+
+    print(f"End Thread {i}")
+
+
+def get_maps(input):
     maps = []
     j = -1
     k = 0
@@ -32,25 +95,11 @@ def find_lowest_location_number(seeds, input):
 
         map_values = line.split(" ")
         maps[j].append([])
-        maps[j][k].append(int(map_values[0]))
+        maps[j][k].append([int(map_values[0]), int(map_values[0]) + int(map_values[2]) - 1])
         maps[j][k].append([int(map_values[1]), int(map_values[1]) + int(map_values[2]) - 1])
         k += 1
 
-    location_numbers = []
-    for seed in seeds:
-        source_value = seed
-        for map in maps:
-            for entry in map:
-                if source_value >= entry[1][0] and source_value <= entry[1][1]:
-                    difference = source_value - entry[1][0]
-                    source_value = entry[0] + difference
-                    break
-
-        location_numbers.append(source_value)
-        seed += 1
-
-    location_numbers.sort()
-    print(f"Lowest LocationNumber: {location_numbers[0]}")
+    return maps
 
 
 
@@ -95,4 +144,4 @@ input = data.readlines()
 data.close()
 
 part_one(input)
-#part_two(input)
+part_two(input)
