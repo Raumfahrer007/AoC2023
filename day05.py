@@ -1,4 +1,3 @@
-import threading
 import multiprocessing
 
 def part_one(input):
