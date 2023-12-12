@@ -70,7 +70,10 @@ def part_two(input):
     maze, starting_point = get_maze_and_start(input)
     loop_way = get_loop(maze, starting_point)
 
-    for i, line in enumerate(maze): # replaces no-loop-parts with ground
+    """
+    replaces tube-parts that are not part of the loop with ground tiles
+    """
+    for i, line in enumerate(maze):
         for j, tile in enumerate(line):
             if not tile == ".":
                 coordinate = [i, j]
